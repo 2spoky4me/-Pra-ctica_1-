@@ -1,0 +1,22 @@
+# Archivos de entorno (contienen contraseñas o variables privadas)
+.env*
+!example.env  # Si quieres subir un ejemplo vacío
+
+# Compilados de Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Logs
+*.log
+
+# Datos persistentes o volúmenes locales
+volumes/
+*/__pycache__/
+*.sqlite3
+
+# Archivos del sistema o IDE
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
