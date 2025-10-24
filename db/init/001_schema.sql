@@ -1,0 +1,7 @@
+CREATE TABLE IF NOT EXISTS users (
+    id SERIAL PRIMARY KEY,
+    name TEXT NOT NULL,
+    surname TEXT NOT NULL DEFAULT '',
+    age INT NOT NULL DEFAULT 0,
+    created_at TIMESTAMP NOT NULL DEFAULT NOW()
+);

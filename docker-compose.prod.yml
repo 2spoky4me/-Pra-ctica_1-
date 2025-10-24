@@ -1,0 +1,66 @@
+name: redes_prac1
+
+services:
+  db_prod:
+    image: postgres:16-alpine
+    container_name: db_prod
+    env_file: .env.prod
+    environment:
+      - POSTGRES_DB=${DB_NAME}
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+    volumes:
+      - vol_prod:/var/lib/postgresql/data
+      - ./db/init:/docker-entrypoint-initdb.d
+    networks:
+      - red_prod
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME} -h localhost -p 5432"]
+      interval: 5s
+      timeout: 2s
+      retries: 10
+
+  cache:
+    image: redis:7-alpine
+    container_name: cache
+    networks:
+      - red_prod
+
+  web_prod:
+    build:
+      context: ./app
+      dockerfile: Dockerfile
+    container_name: web_prod
+    depends_on:
+      db_prod:
+        condition: service_healthy
+      cache:
+        condition: service_started
+    env_file: .env.prod
+    ports:
+      - "${WEB_PORT}:8000"
+    networks:
+      - red_prod
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - >
+          python - << 'PY'
+          import json, urllib.request, sys
+          try:
+              j = json.load(urllib.request.urlopen('http://localhost:8000/status'))
+              sys.exit(0 if j.get('db_connected') and j.get('cache_connected') else 1)
+          except:
+              sys.exit(1)
+          PY
+      interval: 10s
+      timeout: 3s
+      retries: 10
+
+networks:
+  red_prod:
+    name: red_prod  # nombre fijo de la red prod
+
+volumes:
+  vol_prod:
+    name: vol_prod  # nombre fijo del volumen prod
